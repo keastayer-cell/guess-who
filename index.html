@@ -22,23 +22,37 @@
             padding: 20px;
         }
 
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .question-block {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
         .image-container {
-            max-width: 400px;
+            max-width: 300px;
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .image-container img {
             width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
         .question {
-            color: white;
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
 
         .input-container {
@@ -49,21 +63,26 @@
         }
 
         .answer-input {
-            padding: 15px 20px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            width: 250px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 200px;
             outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            border-color: #e94560;
         }
 
         .submit-btn {
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 12px 25px;
+            font-size: 16px;
             background: #e94560;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: transform 0.2s, background 0.2s;
         }
@@ -74,11 +93,11 @@
         }
 
         .result {
-            margin-top: 25px;
-            font-size: 22px;
+            margin-top: 15px;
+            font-size: 18px;
             font-weight: bold;
             text-align: center;
-            min-height: 30px;
+            min-height: 25px;
         }
 
         .result.correct {
@@ -105,99 +124,142 @@
 
         .popup-content {
             background: white;
-            padding: 40px;
-            border-radius: 20px;
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
-            max-width: 400px;
+            max-width: 350px;
         }
 
         .popup-text {
-            font-size: 24px;
+            font-size: 20px;
             color: #333;
             margin-bottom: 20px;
         }
 
         .popup-btn {
-            padding: 12px 30px;
-            font-size: 18px;
+            padding: 10px 25px;
+            font-size: 16px;
             background: #e94560;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="image-container">
-        <img src="petuh2.jpg" alt="Загадочное фото">
+    <div class="game-container">
+        <!-- Первый вопрос -->
+        <div class="question-block" id="block1">
+            <div class="image-container">
+                <img src="petuh.jpg" alt="Петух">
+            </div>
+            <div class="question">Кто изображен на рисунке?</div>
+            <div class="input-container">
+                <input type="text" class="answer-input" id="input1" placeholder="Введите ответ">
+                <button class="submit-btn" onclick="checkAnswer(1)">Ответить</button>
+            </div>
+            <div class="result" id="result1"></div>
+        </div>
+
+        <!-- Второй вопрос -->
+        <div class="question-block" id="block2">
+            <div class="image-container">
+                <img src="petuh2.jpg" alt="Петух 2">
+            </div>
+            <div class="question">А это кто?</div>
+            <div class="input-container">
+                <input type="text" class="answer-input" id="input2" placeholder="Введите ответ">
+                <button class="submit-btn" onclick="checkAnswer(2)">Ответить</button>
+            </div>
+            <div class="result" id="result2"></div>
+        </div>
     </div>
-
-    <div class="question">А это кто?</div>
-
-    <div class="input-container">
-        <input type="text" class="answer-input" id="answerInput" placeholder="Введите ответ">
-        <button class="submit-btn" id="submitBtn">Ответить</button>
-    </div>
-
-    <div class="result" id="result"></div>
 
     <!-- Popup -->
     <div class="popup" id="popup">
         <div class="popup-content">
-            <div class="popup-text">Нет, думайте ещё...</div>
+            <div class="popup-text" id="popupText">Нет, думайте ещё...</div>
             <button class="popup-btn" id="popupBtn">Ок</button>
         </div>
     </div>
 
     <script>
-        const answerInput = document.getElementById('answerInput');
-        const submitBtn = document.getElementById('submitBtn');
-        const result = document.getElementById('result');
         const popup = document.getElementById('popup');
+        const popupText = document.getElementById('popupText');
         const popupBtn = document.getElementById('popupBtn');
 
-        let attempts = 0;
-        const correctAnswer = 'гас';
+        let attempts1 = 0;
+        let attempts2 = 0;
 
-        function checkAnswer() {
-            const userAnswer = answerInput.value.trim().toLowerCase();
+        function checkAnswer(blockNum) {
+            const input = document.getElementById('input' + blockNum);
+            const result = document.getElementById('result' + blockNum);
+            const userAnswer = input.value.trim().toLowerCase();
 
             if (!userAnswer) {
                 return;
             }
 
-            if (userAnswer === correctAnswer) {
-                attempts++;
-                result.classList.add('correct');
-                if (attempts === 1) {
-                    result.textContent = 'С первого раза, а ты хорош!';
+            if (blockNum === 1) {
+                // Первый вопрос - правильный ответ "гас"
+                if (userAnswer === 'гас') {
+                    attempts1++;
+                    result.classList.add('correct');
+                    if (attempts1 === 1) {
+                        result.textContent = 'С первого раза, а ты хорош!';
+                    } else {
+                        result.textContent = 'Верно, молодец!';
+                    }
+                    input.disabled = true;
+                    input.parentElement.querySelector('.submit-btn').disabled = true;
                 } else {
-                    result.textContent = 'Верно, молодец!';
+                    attempts1++;
+                    popupText.textContent = 'Нет, думайте ещё...';
+                    popup.classList.add('show');
+                    input.value = '';
+                    input.focus();
                 }
-                answerInput.disabled = true;
-                submitBtn.disabled = true;
-            } else {
-                attempts++;
-                popup.classList.add('show');
-                answerInput.value = '';
-                answerInput.focus();
+            } else if (blockNum === 2) {
+                // Второй вопрос - правильный ответ "петух"
+                if (userAnswer === 'петух') {
+                    attempts2++;
+                    result.classList.add('correct');
+                    if (attempts2 === 1) {
+                        result.textContent = 'С первого раза, а ты хорош!';
+                    } else {
+                        result.textContent = 'Верно, молодец!';
+                    }
+                    input.disabled = true;
+                    input.parentElement.querySelector('.submit-btn').disabled = true;
+                } else if (userAnswer === 'гас' || userAnswer === 'гасин') {
+                    attempts2++;
+                    popupText.textContent = 'Это гас был в первой картинке. Внимательнее.';
+                    popup.classList.add('show');
+                    input.value = '';
+                    input.focus();
+                } else {
+                    attempts2++;
+                    popupText.textContent = 'Нет, думайте ещё...';
+                    popup.classList.add('show');
+                    input.value = '';
+                    input.focus();
+                }
             }
         }
 
-        submitBtn.addEventListener('click', checkAnswer);
-
-        answerInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                checkAnswer();
-            }
+        // Обработка Enter для обоих полей
+        document.getElementById('input1').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer(1);
+        });
+        document.getElementById('input2').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer(2);
         });
 
         popupBtn.addEventListener('click', () => {
             popup.classList.remove('show');
         });
 
-        // Закрытие popup по клику вне окна
         popup.addEventListener('click', (e) => {
             if (e.target === popup) {
                 popup.classList.remove('show');
